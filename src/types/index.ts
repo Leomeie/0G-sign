@@ -38,7 +38,6 @@ export interface SignatureProof {
   creator: string;
   signers: string[];
   signatures: { address: string; signature: string | null; timestamp: number | null }[];
-  encryptionKey: string | null;
   storage: "0g" | "local";
   createdAt: number;
   status: DocStatus;

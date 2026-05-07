@@ -12,6 +12,7 @@ interface Toast {
   id: number;
   message: string;
   type: "success" | "error" | "info";
+  removing?: boolean;
 }
 
 interface ToastContextValue {
@@ -30,7 +31,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       const id = nextId++;
       setToasts((prev) => [...prev, { id, message, type }]);
       setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
+        // Trigger exit animation
+        setToasts((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, removing: true } : t)),
+        );
+        // Remove from DOM after animation completes
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, 250);
       }, 3500);
     },
     [],
@@ -45,11 +53,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+      <div aria-live="polite" role="status" className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto rounded-lg border px-4 py-3 text-sm shadow-lg animate-slide-in-right ${colors[t.type]}`}
+            className={`pointer-events-auto rounded-lg border px-4 py-3 text-sm shadow-lg ${t.removing ? "animate-slide-out-right" : "animate-slide-in-right"} ${colors[t.type]}`}
           >
             {t.message}
           </div>

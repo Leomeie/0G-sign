@@ -18,7 +18,7 @@ export interface BrowserUploadResult {
 
 function getEthereum(): ethers.Eip1193Provider | null {
   if (typeof window === "undefined") return null;
-  return (window as any).ethereum ?? null;
+  return window.ethereum ?? null;
 }
 
 export function hasWalletProvider(): boolean {

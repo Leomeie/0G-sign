@@ -2,8 +2,13 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in-up">
-      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl animate-fade-in bg-gradient-to-r from-zinc-100 via-blue-200 to-purple-300 bg-clip-text text-transparent">
+    <div className="relative flex flex-col items-center justify-center py-16 text-center animate-fade-in-up overflow-hidden">
+      {/* Animated background orbs */}
+      <div className="bg-orb w-96 h-96 -top-48 -left-48 bg-blue-600" />
+      <div className="bg-orb w-80 h-80 -bottom-40 -right-40 bg-violet-600" style={{ animationDelay: "-4s" }} />
+      <div className="bg-orb w-64 h-64 top-1/3 right-1/4 bg-cyan-600" style={{ animationDelay: "-8s" }} />
+
+      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl animate-fade-in bg-gradient-to-r from-zinc-100 via-blue-200 to-purple-300 bg-clip-text text-transparent animate-gradient">
         Sign documents, not subscriptions
       </h1>
       <p className="mt-4 max-w-lg text-lg text-zinc-400 animate-fade-in stagger-2">

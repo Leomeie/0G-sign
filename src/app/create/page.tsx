@@ -13,10 +13,13 @@ export default function CreatePage() {
   const { address } = useAccount();
   const router = useRouter();
   const [title, setTitle] = useState("");
+  const [titleTouched, setTitleTouched] = useState(false);
   const [description, setDescription] = useState("");
   const [signers, setSigners] = useState<string[]>([]);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const titleError = titleTouched && !title.trim() ? "Title is required" : "";
 
   if (!address) {
     return (
@@ -58,7 +61,7 @@ export default function CreatePage() {
         files[doc.id] = uploadResult.fileData;
         localStorage.setItem("og-sign-files", JSON.stringify(files));
       } catch {
-        console.error("[create] failed to store file data");
+        /* localStorage quota exceeded — non-fatal */
       }
     }
 
@@ -71,7 +74,7 @@ export default function CreatePage() {
         keys[doc.rootHash] = uploadResult.encryptionKey;
         localStorage.setItem("og-sign-keys", JSON.stringify(keys));
       } catch {
-        console.error("[create] failed to store encryption key");
+        /* localStorage quota exceeded — non-fatal */
       }
     }
 
@@ -95,9 +98,16 @@ export default function CreatePage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => setTitleTouched(true)}
             placeholder="e.g. Employment Agreement"
-            className="glass-input w-full px-3 py-2 text-sm"
+            aria-invalid={!!titleError}
+            className={`glass-input w-full px-3 py-2 text-sm ${
+              titleError ? "border-red-500/50 focus:border-red-500" : ""
+            }`}
           />
+          {titleError && (
+            <p className="mt-1 text-xs text-red-400">{titleError}</p>
+          )}
         </div>
 
         <div>

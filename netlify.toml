@@ -6,7 +6,7 @@
   package = "@netlify/plugin-nextjs"
 
 [build.environment]
-  # 0G mainnet defaults — override in Netlify dashboard if needed
+  # 0G Mainnet
   NEXT_PUBLIC_OG_CHAIN_ID = "16661"
   NEXT_PUBLIC_OG_RPC_URL = "https://evmrpc.0g.ai"
   NEXT_PUBLIC_OG_EXPLORER_URL = "https://chainscan.0g.ai"

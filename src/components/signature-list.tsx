@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { DocRecord } from "@/types";
 
 interface Props {
@@ -5,7 +6,7 @@ interface Props {
   currentAddress?: string;
 }
 
-export default function SignatureList({ doc, currentAddress }: Props) {
+export default memo(function SignatureList({ doc, currentAddress }: Props) {
   return (
     <div className="space-y-1">
       <h3 className="text-sm font-medium text-zinc-300 mb-2">Signatures</h3>
@@ -45,4 +46,4 @@ export default function SignatureList({ doc, currentAddress }: Props) {
       )}
     </div>
   );
-}
+})

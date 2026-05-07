@@ -1,6 +1,6 @@
 "use client";
 
-export default function ErrorPage({
+export default function CreateError({
   error,
   reset,
 }: {
@@ -8,9 +8,9 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
-      <h2 className="text-xl font-semibold text-zinc-100">
-        Something went wrong
+    <div className="mx-auto max-w-2xl py-16 text-center animate-fade-in">
+      <h2 className="text-lg font-semibold text-zinc-100">
+        Failed to load creation form
       </h2>
       <p className="mt-2 text-sm text-zinc-400">
         {error.message || "An unexpected error occurred"}

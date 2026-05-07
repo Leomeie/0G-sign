@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 
 interface Props {
   url: string;
 }
 
-export default function ShareButton({ url }: Props) {
+export default memo(function ShareButton({ url }: Props) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -25,8 +25,8 @@ export default function ShareButton({ url }: Props) {
   };
 
   return (
-    <button onClick={copy} className="btn-glass px-4 py-2 text-sm">
+    <button onClick={copy} aria-live="polite" className="btn-glass px-4 py-2 text-sm">
       {copied ? "Copied" : "Copy Link"}
     </button>
   );
-}
+})

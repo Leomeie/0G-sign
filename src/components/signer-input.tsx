@@ -74,6 +74,7 @@ export default function SignerInput({ signers, onChange }: Props) {
               <button
                 type="button"
                 onClick={() => remove(addr)}
+                aria-label={`Remove signer ${addr.slice(0, 6)}...${addr.slice(-4)}`}
                 className="ml-1 text-zinc-500 hover:text-red-400"
               >
                 x

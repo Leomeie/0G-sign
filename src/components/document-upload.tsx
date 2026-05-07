@@ -89,7 +89,10 @@ export default function DocumentUpload({ onUploaded }: Props) {
   return (
     <div>
       <div
-        className={`relative rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
+        role="button"
+        tabIndex={0}
+        aria-label="Upload document — drop a file here or click to browse"
+        className={`relative rounded-xl border-2 border-dashed p-12 text-center transition-all duration-300 ${
           dragOver
             ? "border-blue-500 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.25)]"
             : "border-zinc-700 hover:border-zinc-600"
@@ -101,11 +104,18 @@ export default function DocumentUpload({ onUploaded }: Props) {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !uploading && inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && !uploading) {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
       >
         <input
           ref={inputRef}
           type="file"
           accept=".pdf,.png,.jpg,.jpeg,.docx"
+          aria-label="Choose document file"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -113,13 +123,14 @@ export default function DocumentUpload({ onUploaded }: Props) {
           }}
         />
         {uploading ? (
-          <div>
-            <p className="text-zinc-400 font-medium">
+          <div className="flex flex-col items-center gap-3">
+            <svg aria-hidden="true" className="w-6 h-6 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <p className="text-sm text-zinc-400">
               {progress || "Uploading..."}
             </p>
-            <div className="mt-3 w-48 mx-auto h-1 bg-zinc-800 rounded overflow-hidden">
-              <div className="h-full bg-blue-500 rounded animate-pulse w-2/3" />
-            </div>
           </div>
         ) : (
           <>

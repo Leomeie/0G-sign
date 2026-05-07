@@ -13,9 +13,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <Header />
-        <main className="mx-auto max-w-5xl px-4 py-8">
-          {children}
-        </main>
+        {children}
       </QueryClientProvider>
     </WagmiProvider>
   );

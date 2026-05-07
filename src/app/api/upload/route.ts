@@ -13,8 +13,37 @@ const ALLOWED = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
+// Simple in-memory rate limiter for serverless
+const g = globalThis as unknown as { __ogUploadHits?: Map<string, number[]> };
+if (!g.__ogUploadHits) g.__ogUploadHits = new Map();
+const hits = g.__ogUploadHits;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const window = 60_000;
+  const max = 10;
+  const arr = hits.get(ip) ?? [];
+  const recent = arr.filter((t) => now - t < window);
+  if (recent.length >= max) return false;
+  recent.push(now);
+  hits.set(ip, recent);
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit by IP
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const encrypt = formData.get("encrypt") === "true";
@@ -30,7 +59,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (isOgConfigured()) {
-      console.log("[upload] 0G Storage mode");
       const tmpDir = os.tmpdir();
       const tmpPath = path.join(tmpDir, `ogsign-upload-${Date.now()}`);
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -46,15 +74,16 @@ export async function POST(request: NextRequest) {
           fileType: file.type,
           storage: "0g",
         });
-      } catch (uploadErr) {
-        throw uploadErr;
       } finally {
-        try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+        try {
+          fs.unlinkSync(tmpPath);
+        } catch {
+          /* ignore */
+        }
       }
     }
 
     // Fallback: base64 localStorage
-    console.log("[upload] fallback mode (0G not configured)");
     const arrBuf = await file.arrayBuffer();
     const base64 = Buffer.from(arrBuf).toString("base64");
     const hash = crypto.createHash("sha256").update(base64).digest("hex");
@@ -69,10 +98,9 @@ export async function POST(request: NextRequest) {
       storage: "local",
     });
   } catch (error) {
-    console.error("[upload] error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed" },
-      { status: 500 }
+      { error: "Upload failed" },
+      { status: 500 },
     );
   }
 }

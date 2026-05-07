@@ -26,7 +26,6 @@ export async function rateLimit(
   if (requestTimestamps.length >= maxPerMinute) {
     const waitTime = requestTimestamps[0] + 60_000 - now + 100;
     if (waitTime > 0) {
-      console.log(`[rate-limit] waiting ${waitTime}ms`);
       await sleep(waitTime);
     }
     requestTimestamps.shift();

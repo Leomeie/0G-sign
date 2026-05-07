@@ -57,7 +57,6 @@ export async function uploadTo0G(
     );
 
     if (err) {
-      console.error("[0g-upload] error:", err.message || err);
       throw err;
     }
 
