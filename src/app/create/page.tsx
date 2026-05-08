@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import dynamic from "next/dynamic";
 import SignerInput from "@/components/signer-input";
 import { saveDoc } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 import type { DocRecord, UploadResult } from "@/types";
 
 const DocumentUpload = dynamic(() => import("@/components/document-upload"), {
@@ -21,6 +22,7 @@ const DocumentUpload = dynamic(() => import("@/components/document-upload"), {
 export default function CreatePage() {
   const { address } = useAccount();
   const router = useRouter();
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
   const [description, setDescription] = useState("");
@@ -28,12 +30,12 @@ export default function CreatePage() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const titleError = titleTouched && !title.trim() ? "Title is required" : "";
+  const titleError = titleTouched && !title.trim() ? t("docTitleRequired") : "";
 
   if (!address) {
     return (
       <div className="py-16 text-center text-zinc-400 animate-fade-in">
-        Connect your wallet to create a document.
+        {t("connectToCreate")}
       </div>
     );
   }
@@ -93,22 +95,22 @@ export default function CreatePage() {
 
   return (
     <div className="mx-auto max-w-2xl animate-fade-in-up">
-      <h1 className="text-2xl font-bold text-zinc-100">Create Document</h1>
+      <h1 className="text-2xl font-bold text-zinc-100">{t("createTitle")}</h1>
       <p className="mt-1 text-sm text-zinc-400">
-        Upload a document, add signers, and create a signing request.
+        {t("createDesc")}
       </p>
 
       <div className="mt-8 space-y-6">
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Document Title
+            {t("docTitle")}
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => setTitleTouched(true)}
-            placeholder="e.g. Employment Agreement"
+            placeholder={t("docTitlePlaceholder")}
             aria-invalid={!!titleError}
             className={`glass-input w-full px-3 py-2 text-sm ${
               titleError ? "border-red-500/50 focus:border-red-500" : ""
@@ -121,12 +123,12 @@ export default function CreatePage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Description (optional)
+            {t("description")}
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Brief description of the document..."
+            placeholder={t("descPlaceholder")}
             rows={2}
             className="glass-input w-full px-3 py-2 text-sm"
           />
@@ -134,23 +136,23 @@ export default function CreatePage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Document File
+            {t("docFile")}
           </label>
           <DocumentUpload onUploaded={(result) => setUploadResult(result)} />
           {uploadResult && (
             <div className="mt-2 space-y-1">
               <p className="text-sm text-green-400">
-                Uploaded: {uploadResult.fileName}
+                {t("uploaded")} {uploadResult.fileName}
               </p>
               <p className="text-xs text-zinc-500">
-                Storage:{" "}
+                {t("storage")}{" "}
                 {uploadResult.storage === "0g"
-                  ? "0G Storage (encrypted)"
-                  : "Local fallback"}
+                  ? t("storage0g")
+                  : t("storageLocal")}
               </p>
               {uploadResult.encryptionKey && (
                 <p className="text-xs text-zinc-500">
-                  Encryption: AES-256 — key saved
+                  {t("encryption")}
                 </p>
               )}
             </div>
@@ -164,7 +166,7 @@ export default function CreatePage() {
           disabled={!canCreate}
           className="btn-gradient w-full px-6 py-3 text-sm"
         >
-          {creating ? "Creating..." : "Create Signing Request"}
+          {creating ? t("creating") : t("createBtn")}
         </button>
       </div>
     </div>

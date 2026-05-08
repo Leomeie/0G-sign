@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   url: string;
@@ -8,6 +9,7 @@ interface Props {
 
 export default memo(function ShareButton({ url }: Props) {
   const [copied, setCopied] = useState(false);
+  const { t } = useI18n();
 
   const copy = async () => {
     try {
@@ -26,7 +28,7 @@ export default memo(function ShareButton({ url }: Props) {
 
   return (
     <button onClick={copy} aria-live="polite" className="btn-glass px-4 py-2 text-sm">
-      {copied ? "Copied" : "Copy Link"}
+      {copied ? t("copied") : t("copyLink")}
     </button>
   );
-})
+});
