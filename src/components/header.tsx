@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
 import { injected } from "@wagmi/core";
 import { useToast } from "@/components/toast";
-import { ogChain } from "@/lib/wagmi";
+import { ogChain, supportedChainIds } from "@/lib/wagmi";
 
 const NAV_LINKS = [
   { href: "/create", label: "Create" },
@@ -28,7 +28,7 @@ export default function Header() {
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "";
 
-  const wrongChain = isConnected && chainId !== ogChain.id;
+  const wrongChain = isConnected && !supportedChainIds.includes(chainId);
 
   const handleConnect = () => {
     connect(

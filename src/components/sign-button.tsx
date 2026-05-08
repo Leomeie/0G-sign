@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount, useSignTypedData } from "wagmi";
+import { useAccount, useChainId, useSignTypedData } from "wagmi";
 import { getTypedData } from "@/lib/eip712";
 import { useToast } from "@/components/toast";
 import type { DocRecord } from "@/types";
@@ -12,6 +12,7 @@ interface Props {
 
 export default function SignButton({ doc, onSigned }: Props) {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { signTypedData, isPending, error } = useSignTypedData();
   const { show: toast } = useToast();
 
@@ -34,7 +35,7 @@ export default function SignButton({ doc, onSigned }: Props) {
   }
 
   const handleSign = () => {
-    const typedData = getTypedData(doc.rootHash, address);
+    const typedData = getTypedData(doc.rootHash, address, chainId);
     const ts = Number(typedData.message.timestamp);
     signTypedData(typedData, {
       onSuccess(data) {

@@ -1,10 +1,4 @@
-import { ogChain } from "./wagmi";
-
-export const EIP712_DOMAIN = {
-  name: "0G Sign",
-  version: "1",
-  chainId: ogChain.id,
-} as const;
+import { ogMainnet, ogTestnet } from "./wagmi";
 
 export const EIP712_TYPES = {
   Document: [
@@ -14,6 +8,15 @@ export const EIP712_TYPES = {
   ],
 } as const;
 
+/** Returns the EIP-712 domain for the given chain ID. */
+export function getDomain(chainId: number) {
+  return {
+    name: "0G Sign",
+    version: "1",
+    chainId: chainId === ogTestnet.id ? ogTestnet.id : ogMainnet.id,
+  } as const;
+}
+
 export function buildDocMessage(rootHash: string, signer: string) {
   return {
     rootHash: rootHash as `0x${string}`,
@@ -22,9 +25,9 @@ export function buildDocMessage(rootHash: string, signer: string) {
   };
 }
 
-export function getTypedData(rootHash: string, signer: string) {
+export function getTypedData(rootHash: string, signer: string, chainId: number) {
   return {
-    domain: EIP712_DOMAIN,
+    domain: getDomain(chainId),
     types: EIP712_TYPES,
     primaryType: "Document" as const,
     message: buildDocMessage(rootHash, signer),
@@ -35,9 +38,10 @@ export function getTypedDataForVerify(
   rootHash: string,
   signer: string,
   timestamp: number,
+  chainId: number = ogMainnet.id,
 ) {
   return {
-    domain: EIP712_DOMAIN,
+    domain: getDomain(chainId),
     types: EIP712_TYPES,
     primaryType: "Document" as const,
     message: {

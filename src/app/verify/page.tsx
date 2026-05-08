@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { recoverTypedDataAddress, isAddress, isHex } from "viem";
 import { getTypedDataForVerify } from "@/lib/eip712";
+import { supportedChains } from "@/lib/wagmi";
 
 export default function VerifyPage() {
   const [rootHash, setRootHash] = useState("");
   const [signer, setSigner] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [signature, setSignature] = useState("");
+  const [verifyChainId, setVerifyChainId] = useState(16661);
   const [result, setResult] = useState<{
     valid: boolean;
     recoveredAddr: string;
@@ -72,7 +74,7 @@ export default function VerifyPage() {
 
     setChecking(true);
     try {
-      const typedData = getTypedDataForVerify(rootHash, signer, ts);
+      const typedData = getTypedDataForVerify(rootHash, signer, ts, verifyChainId);
       const recovered = await recoverTypedDataAddress({
         ...typedData,
         signature: signature as `0x${string}`,
@@ -101,6 +103,23 @@ export default function VerifyPage() {
       </p>
 
       <div className="mt-8 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">
+            Network
+          </label>
+          <select
+            value={verifyChainId}
+            onChange={(e) => setVerifyChainId(Number(e.target.value))}
+            className="glass-input w-full px-3 py-2 text-sm"
+          >
+            {supportedChains.map((c) => (
+              <option key={c.id} value={c.id} className="bg-zinc-900">
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
             Root Hash

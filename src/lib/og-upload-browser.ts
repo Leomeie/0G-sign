@@ -3,12 +3,7 @@
 import { MemData, Indexer } from "@0gfoundation/0g-storage-ts-sdk";
 import { ethers } from "ethers";
 import { generateAes256Key } from "./encryption";
-
-const INDEXER_URL =
-  process.env.NEXT_PUBLIC_OG_INDEXER_URL ||
-  "https://indexer-storage-turbo.0g.ai";
-const RPC_URL =
-  process.env.NEXT_PUBLIC_OG_RPC_URL || "https://evmrpc.0g.ai";
+import { getNetworkForChain } from "./wagmi";
 
 export interface BrowserUploadResult {
   rootHash: string;
@@ -49,11 +44,15 @@ export async function uploadFromBrowser(
   const provider = new ethers.BrowserProvider(ethereum);
   const signer = await provider.getSigner();
 
+  // Detect the wallet's current chain and use matching network config
+  const walletChainId = (await provider.getNetwork()).chainId;
+  const net = getNetworkForChain(Number(walletChainId));
+
   onProgress?.("Uploading to 0G Storage...");
-  const indexer = new Indexer(INDEXER_URL);
+  const indexer = new Indexer(net.indexerUrl);
   const [result, err] = await indexer.upload(
     memData as any,
-    RPC_URL,
+    net.rpcUrl,
     signer as any,
     uploadOpts as any,
   );
