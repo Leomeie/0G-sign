@@ -12,18 +12,28 @@ const RPC_URL =
   process.env.OG_RPC_URL ||
   "https://evmrpc.0g.ai";
 
+// Singletons — reused across requests in the same serverless instance
 let indexer: Indexer | null = null;
+let provider: ethers.JsonRpcProvider | null = null;
+let signer: ethers.Wallet | null = null;
 
 function getIndexer(): Indexer {
   if (!indexer) indexer = new Indexer(INDEXER_URL);
   return indexer;
 }
 
+function getProvider(): ethers.JsonRpcProvider {
+  if (!provider) provider = new ethers.JsonRpcProvider(RPC_URL);
+  return provider;
+}
+
 function getSigner(): ethers.Wallet {
-  const key = process.env.OG_PRIVATE_KEY;
-  if (!key) throw new Error("OG_PRIVATE_KEY not set in .env.local");
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
-  return new ethers.Wallet(key, provider);
+  if (!signer) {
+    const key = process.env.OG_PRIVATE_KEY;
+    if (!key) throw new Error("OG_PRIVATE_KEY not set in .env.local");
+    signer = new ethers.Wallet(key, getProvider());
+  }
+  return signer;
 }
 
 export interface UploadResult {
@@ -36,12 +46,11 @@ export async function uploadTo0G(
   filePath: string,
   encrypt: boolean = true
 ): Promise<UploadResult> {
-  const signer = getSigner();
+  const s = getSigner();
   const idx = getIndexer();
   const zgFile = await ZgFile.fromFilePath(filePath);
 
   try {
-    // merkleTree() must be called before upload — populates internal state
     await zgFile.merkleTree();
 
     const encryptionKey = encrypt ? generateAes256Key() : null;
@@ -52,13 +61,11 @@ export async function uploadTo0G(
     const [result, err] = await idx.upload(
       zgFile as any,
       RPC_URL,
-      signer as any,
+      s as any,
       uploadOpts as any
     );
 
-    if (err) {
-      throw err;
-    }
+    if (err) throw err;
 
     if ("rootHash" in result) {
       return {

@@ -2,12 +2,22 @@ const STORAGE_KEY = "og-sign-documents";
 
 import type { DocRecord } from "@/types";
 
+let docsCache: DocRecord[] | null = null;
+let cacheRaw: string | null = null;
+
 export function getAllDocs(): DocRecord[] {
   if (typeof window === "undefined") return [];
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
+  if (!raw) {
+    docsCache = null;
+    cacheRaw = null;
+    return [];
+  }
+  if (raw === cacheRaw && docsCache) return docsCache;
   try {
-    return JSON.parse(raw) as DocRecord[];
+    docsCache = JSON.parse(raw) as DocRecord[];
+    cacheRaw = raw;
+    return docsCache;
   } catch {
     return [];
   }
@@ -20,12 +30,18 @@ export function getDoc(id: string): DocRecord | null {
 export function saveDoc(doc: DocRecord): void {
   const docs = getAllDocs().filter((d) => d.id !== doc.id);
   docs.push(doc);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  const serialized = JSON.stringify(docs);
+  localStorage.setItem(STORAGE_KEY, serialized);
+  docsCache = docs;
+  cacheRaw = serialized;
 }
 
 export function deleteDoc(id: string): void {
   const docs = getAllDocs().filter((d) => d.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  const serialized = JSON.stringify(docs);
+  localStorage.setItem(STORAGE_KEY, serialized);
+  docsCache = docs;
+  cacheRaw = serialized;
   try {
     const raw = localStorage.getItem("og-sign-files");
     if (raw) {

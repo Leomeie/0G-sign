@@ -1,7 +1,6 @@
 "use client";
 
 import { MemData, Indexer } from "@0gfoundation/0g-storage-ts-sdk";
-import { ethers } from "ethers";
 import { generateAes256Key } from "./encryption";
 import { getNetworkForChain } from "./wagmi";
 
@@ -11,9 +10,9 @@ export interface BrowserUploadResult {
   encryptionKey: string | null;
 }
 
-function getEthereum(): ethers.Eip1193Provider | null {
+function getEthereum(): any | null {
   if (typeof window === "undefined") return null;
-  return window.ethereum ?? null;
+  return (window as any).ethereum ?? null;
 }
 
 export function hasWalletProvider(): boolean {
@@ -41,12 +40,29 @@ export async function uploadFromBrowser(
     : undefined;
 
   onProgress?.("Requesting wallet signature...");
-  const provider = new ethers.BrowserProvider(ethereum);
-  const signer = await provider.getSigner();
+  // Use ethereum provider directly — avoids importing ethers.BrowserProvider
+  const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+  const address = accounts[0];
+  const chainIdHex = await ethereum.request({ method: "eth_chainId" });
+  const chainId = parseInt(chainIdHex, 16);
+  const net = getNetworkForChain(chainId);
 
-  // Detect the wallet's current chain and use matching network config
-  const walletChainId = (await provider.getNetwork()).chainId;
-  const net = getNetworkForChain(Number(walletChainId));
+  // Create a minimal signer adapter compatible with the 0G SDK
+  const signer = {
+    getAddress: async () => address,
+    signMessage: async (msg: Uint8Array | string) => {
+      const hexMsg = typeof msg === "string"
+        ? msg
+        : "0x" + Buffer.from(msg).toString("hex");
+      return await ethereum.request({
+        method: "personal_sign",
+        params: [hexMsg, address],
+      });
+    },
+    provider: {
+      getNetwork: async () => ({ chainId: BigInt(chainId) }),
+    },
+  };
 
   onProgress?.("Uploading to 0G Storage...");
   const indexer = new Indexer(net.indexerUrl);

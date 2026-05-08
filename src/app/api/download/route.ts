@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { downloadFrom0G, isOgConfigured } from "@/lib/og-storage";
-import fs from "fs";
+import { createReadStream } from "fs";
+import { stat, unlink } from "fs/promises";
 
 // Validate hex string (0x prefix, 64 hex chars for bytes32)
 const ROOT_HASH_RE = /^0x[0-9a-fA-F]{64}$/;
@@ -33,18 +34,30 @@ export async function POST(request: NextRequest) {
     }
 
     const { filePath, mime } = await downloadFrom0G(rootHash, encryptionKey);
+    const fileStat = await stat(filePath);
 
-    const data = fs.readFileSync(filePath);
-    try {
-      fs.unlinkSync(filePath);
-    } catch {
-      /* ignore */
-    }
+    const stream = createReadStream(filePath);
+    const readable = new ReadableStream({
+      start(controller) {
+        stream.on("data", (chunk: string | Buffer) => {
+          controller.enqueue(typeof chunk === "string" ? new TextEncoder().encode(chunk) : chunk);
+        });
+        stream.on("end", () => {
+          controller.close();
+          unlink(filePath).catch(() => {});
+        });
+        stream.on("error", (err) => {
+          controller.error(err);
+          unlink(filePath).catch(() => {});
+        });
+      },
+    });
 
-    return new NextResponse(data, {
+    return new NextResponse(readable, {
       headers: {
         "Content-Type": mime,
         "Content-Disposition": "attachment; filename=document",
+        "Content-Length": String(fileStat.size),
         "Cache-Control": "private, no-store",
       },
     });
