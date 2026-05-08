@@ -23,15 +23,23 @@
   to { opacity: 0; transform: translateX(16px); }
 }
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 @layer base {
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       sans-serif;
     background-color: #0a0a0f;
-    color: #e4e4e7;
+    color: #d4d4d8;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Scope transitions to interactive elements only — avoids repainting the entire DOM */
+  /* Scope transitions to interactive elements only */
   a,
   button,
   input,
@@ -39,9 +47,9 @@
   select,
   [role="button"] {
     transition-property: color, background-color, border-color, box-shadow,
-      opacity;
-    transition-duration: 150ms;
-    transition-timing-function: ease-out;
+      opacity, transform;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   ::-webkit-scrollbar {
@@ -51,14 +59,17 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 
   input:-webkit-autofill,
   textarea:-webkit-autofill {
     -webkit-box-shadow: 0 0 0 1000px #0a0a0f inset;
-    -webkit-text-fill-color: #e4e4e7;
+    -webkit-text-fill-color: #d4d4d8;
   }
 
   *:focus-visible {
@@ -72,27 +83,36 @@
   select:focus-visible {
     outline: none;
   }
+
+  ::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #fff;
+  }
 }
 
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
     transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, transform 0.2s;
   }
   .glass-card:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.06);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 32px rgba(59, 130, 246, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.05);
     transform: translateY(-2px);
   }
 
   .glass-input {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
-    color: #e4e4e7;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.625rem;
+    color: #d4d4d8;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .glass-input::placeholder {
@@ -101,19 +121,32 @@
   .glass-input:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 0 16px rgba(59, 130, 246, 0.1);
   }
 
   .btn-gradient {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
     color: white;
-    border-radius: 0.5rem;
-    font-weight: 500;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
   }
   .btn-gradient:hover {
-    opacity: 0.9;
-    box-shadow: 0 0 24px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 24px rgba(59, 130, 246, 0.35), 0 4px 16px rgba(124, 58, 237, 0.2);
+  }
+  .btn-gradient:hover::before {
+    opacity: 1;
   }
   .btn-gradient:active {
     transform: scale(0.98);
@@ -124,38 +157,31 @@
   }
 
   .btn-glass {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.625rem;
     color: #a1a1aa;
     font-weight: 500;
     transition: background-color 0.2s, border-color 0.2s, color 0.2s,
-      transform 0.15s;
+      transform 0.15s, box-shadow 0.2s;
   }
   .btn-glass:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
     color: #e4e4e7;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.03);
   }
   .btn-glass:active {
     transform: scale(0.98);
   }
 
-  .stagger-1 {
-    animation-delay: 0.05s;
-  }
-  .stagger-2 {
-    animation-delay: 0.1s;
-  }
-  .stagger-3 {
-    animation-delay: 0.15s;
-  }
-  .stagger-4 {
-    animation-delay: 0.2s;
-  }
-  .stagger-5 {
-    animation-delay: 0.25s;
-  }
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
 
   .animate-gradient {
     background-size: 200% 200%;
@@ -166,7 +192,7 @@
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.15;
+    opacity: 0.12;
     pointer-events: none;
     animation: float 12s ease-in-out infinite;
   }
@@ -178,5 +204,20 @@
 
   .animate-slide-out-right {
     animation: slide-out-right 0.25s ease-in forwards;
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .glow-ring {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 0 20px rgba(59, 130, 246, 0.1);
   }
 }

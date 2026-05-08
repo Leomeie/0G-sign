@@ -59,7 +59,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-glass-border bg-base/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-glass-border bg-base/80 backdrop-blur-xl">
       {/* Wrong chain banner */}
       {wrongChain && (
         <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-2 text-center text-xs text-yellow-400">
@@ -94,8 +94,10 @@ export default function Header() {
               key={href}
               href={href}
               aria-current={pathname === href ? "page" : undefined}
-              className={`hover:text-zinc-100 ${
-                pathname === href ? "text-zinc-100" : ""
+              className={`relative py-1 hover:text-zinc-100 transition-colors ${
+                pathname === href
+                  ? "text-zinc-100 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-500 after:rounded-full"
+                  : ""
               }`}
             >
               {label}

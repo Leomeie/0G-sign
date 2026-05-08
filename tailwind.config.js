@@ -7,11 +7,11 @@ module.exports = {
         base: "#0a0a0f",
         surface: "rgba(255, 255, 255, 0.03)",
         "surface-hover": "rgba(255, 255, 255, 0.06)",
-        "glass-border": "rgba(255, 255, 255, 0.08)",
-        "glass-border-hover": "rgba(255, 255, 255, 0.15)",
+        "glass-border": "rgba(255, 255, 255, 0.06)",
+        "glass-border-hover": "rgba(255, 255, 255, 0.12)",
         accent: {
           from: "#3b82f6",
-          to: "#8b5cf6",
+          to: "#7c3aed",
         },
       },
       keyframes: {

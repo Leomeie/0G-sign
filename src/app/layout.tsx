@@ -46,7 +46,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-base text-zinc-200 antialiased">
+      <body className="min-h-screen bg-base text-zinc-300 antialiased">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
@@ -55,7 +55,7 @@ export default function RootLayout({
         </a>
         <ToastProvider>
           <Providers>
-            <main id="main-content" className="mx-auto max-w-5xl px-4 py-8">
+            <main id="main-content" className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
               {children}
             </main>
           </Providers>
