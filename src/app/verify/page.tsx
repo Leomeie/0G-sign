@@ -10,7 +10,7 @@ export default function VerifyPage() {
   const [signer, setSigner] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [signature, setSignature] = useState("");
-  const [verifyChainId, setVerifyChainId] = useState(16661);
+  const [verifyChainId, setVerifyChainId] = useState(16602);
   const [result, setResult] = useState<{
     valid: boolean;
     recoveredAddr: string;

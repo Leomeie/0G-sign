@@ -15,7 +15,7 @@ export const ogMainnet = defineChain({
 
 // 0G Testnet
 export const ogTestnet = defineChain({
-  id: 16601,
+  id: 16602,
   name: "0G Testnet",
   nativeCurrency: { name: "0G", symbol: "A0GI", decimals: 18 },
   rpcUrls: { default: { http: ["https://evmrpc-testnet.0g.ai"] } },
