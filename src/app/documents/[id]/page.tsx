@@ -138,6 +138,7 @@ export default function DocumentDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
 
   useEffect(() => {
     return () => {
@@ -147,6 +148,10 @@ export default function DocumentDetailPage() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    setShareUrl(`${window.location.origin}/documents/${id}`);
+  }, [id]);
 
   useEffect(() => {
     const found = getDoc(id);
@@ -309,11 +314,6 @@ export default function DocumentDetailPage() {
       </div>
     );
   }
-
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/documents/${doc.id}`
-      : "";
 
   const isCreator =
     address && doc.creator.toLowerCase() === address.toLowerCase();

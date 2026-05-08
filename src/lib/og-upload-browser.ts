@@ -3,7 +3,7 @@
 import { MemData, Indexer } from "@0gfoundation/0g-storage-ts-sdk";
 import { ethers } from "ethers";
 import { generateAes256Key } from "./encryption";
-import { getNetworkForChain } from "./wagmi";
+import { supportedChainIds, getNetworkForChain } from "./wagmi";
 
 export interface BrowserUploadResult {
   rootHash: string;
@@ -41,10 +41,26 @@ export async function uploadFromBrowser(
     : undefined;
 
   onProgress?.("Requesting wallet signature...");
+  // Explicitly request accounts first to ensure wallet is authorized
+  await ethereum.request({ method: "eth_requestAccounts" });
+
   const browserProvider = new ethers.BrowserProvider(ethereum);
   const signer = await browserProvider.getSigner();
-  const chainId = (await browserProvider.getNetwork()).chainId;
-  const net = getNetworkForChain(Number(chainId));
+  const chainId = Number((await browserProvider.getNetwork()).chainId);
+
+  if (!supportedChainIds.includes(chainId)) {
+    throw new Error(
+      `Please switch your wallet to 0G Mainnet or 0G Testnet. Current chain: ${chainId}`,
+    );
+  }
+
+  const net = getNetworkForChain(chainId);
+
+  // Ensure signer has a provider for contract call() support
+  // Some wallet environments don't properly attach the provider
+  if (!signer.provider) {
+    (signer as any).provider = browserProvider;
+  }
 
   onProgress?.("Uploading to 0G Storage...");
   const indexer = new Indexer(net.indexerUrl);
