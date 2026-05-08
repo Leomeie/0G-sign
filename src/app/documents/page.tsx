@@ -89,7 +89,7 @@ export default function DocumentsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-in-up">
+    <div suppressHydrationWarning className="mx-auto max-w-2xl animate-fade-in-up">
       <h1 className="text-2xl font-bold text-zinc-100">Documents</h1>
       {renderList(toSign, "To Sign")}
       {renderList(created, "Created by Me")}

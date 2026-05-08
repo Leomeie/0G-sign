@@ -59,7 +59,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-glass-border bg-base/80 backdrop-blur-xl">
+    <header suppressHydrationWarning className="sticky top-0 z-40 border-b border-glass-border bg-base/80 backdrop-blur-xl">
       {/* Wrong chain banner */}
       {wrongChain && (
         <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-2 text-center text-xs text-yellow-400">

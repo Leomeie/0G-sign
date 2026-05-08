@@ -326,7 +326,7 @@ export default function DocumentDetailPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-2xl animate-fade-in-up">
+      <div suppressHydrationWarning className="mx-auto max-w-2xl animate-fade-in-up">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-zinc-100">{doc.title}</h1>
