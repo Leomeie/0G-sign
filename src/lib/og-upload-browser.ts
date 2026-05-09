@@ -4,6 +4,7 @@ import { MemData, Indexer } from "@0gfoundation/0g-storage-ts-sdk";
 import { ethers } from "ethers";
 import { generateAes256Key } from "./encryption";
 import { supportedChainIds, getNetworkForChain } from "./wagmi";
+import axios from "axios";
 
 export interface BrowserUploadResult {
   rootHash: string;
@@ -18,6 +19,23 @@ function getEthereum(): any | null {
 
 export function hasWalletProvider(): boolean {
   return !!getEthereum();
+}
+
+/**
+ * Install an axios interceptor that proxies HTTP requests to 0G storage nodes
+ * through our /api/node-proxy endpoint, bypassing browser Mixed Content blocking.
+ */
+function installNodeProxy(): () => void {
+  const interceptor = axios.interceptors.request.use((config) => {
+    const url = config.url ?? "";
+    // Storage nodes use HTTP on port 5678
+    if (url.startsWith("http://") && url.includes(":5678")) {
+      config.headers["x-proxy-target"] = url;
+      config.url = "/api/node-proxy";
+    }
+    return config;
+  });
+  return () => axios.interceptors.request.eject(interceptor);
 }
 
 export async function uploadFromBrowser(
@@ -41,7 +59,6 @@ export async function uploadFromBrowser(
     : undefined;
 
   onProgress?.("Requesting wallet signature...");
-  // Explicitly request accounts first to ensure wallet is authorized
   await ethereum.request({ method: "eth_requestAccounts" });
 
   const browserProvider = new ethers.BrowserProvider(ethereum);
@@ -56,33 +73,62 @@ export async function uploadFromBrowser(
 
   const net = getNetworkForChain(chainId);
 
-  // Ensure signer has a provider for contract call() support
-  // Some wallet environments don't properly attach the provider
   if (!signer.provider) {
     (signer as any).provider = browserProvider;
   }
 
   onProgress?.("Uploading to 0G Storage...");
-  const indexer = new Indexer(net.indexerUrl);
-  const [result, err] = await indexer.upload(
-    memData as any,
-    net.rpcUrl,
-    signer as any,
-    uploadOpts as any,
-  );
 
-  if (err) throw err;
+  // Install proxy interceptor so storage node HTTP requests go through our server
+  const eject = installNodeProxy();
 
-  const rootHash =
-    "rootHash" in result ? result.rootHash : result.rootHashes[0];
-  const txHash =
-    "txHash" in result ? result.txHash : result.txHashes[0];
+  try {
+    const indexer = new Indexer(net.indexerUrl);
+    const [result, err] = await indexer.upload(
+      memData as any,
+      net.rpcUrl,
+      signer as any,
+      uploadOpts as any,
+    );
 
-  return {
-    rootHash,
-    txHash,
-    encryptionKey: encryptionKey
-      ? "0x" + Buffer.from(encryptionKey).toString("hex")
-      : null,
-  };
+    if (err) throw err;
+
+    const rootHash =
+      "rootHash" in result ? result.rootHash : result.rootHashes[0];
+    const txHash =
+      "txHash" in result ? result.txHash : result.txHashes[0];
+
+    return {
+      rootHash,
+      txHash,
+      encryptionKey: encryptionKey
+        ? "0x" + Buffer.from(encryptionKey).toString("hex")
+        : null,
+    };
+  } finally {
+    eject();
+  }
+}
+
+// Re-export for download usage
+export async function downloadFile(
+  rootHash: string,
+  rpcUrl: string,
+  encryptionKeyHex?: string,
+): Promise<Blob> {
+  const eject = installNodeProxy();
+  try {
+    const indexer = new Indexer(
+      getNetworkForChain(16602).indexerUrl,
+    );
+    const opts = encryptionKeyHex
+      ? { decryption: { symmetricKey: encryptionKeyHex } }
+      : undefined;
+    const [blob, err] = await indexer.downloadToBlob(rootHash, opts as any);
+    if (err) throw err;
+    if (!blob) throw new Error("Empty blob");
+    return blob;
+  } finally {
+    eject();
+  }
 }

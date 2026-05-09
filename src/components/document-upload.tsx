@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import {
+  hasWalletProvider,
+  uploadFromBrowser,
+} from "@/lib/og-upload-browser";
 import { useI18n } from "@/lib/i18n";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -19,12 +23,6 @@ interface Props {
   onUploaded: (result: UploadResult) => void;
 }
 
-function generateKeyHex(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return "0x" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 export default function DocumentUpload({ onUploaded }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -40,36 +38,35 @@ export default function DocumentUpload({ onUploaded }: Props) {
         return;
       }
       setUploading(true);
-      setProgress("Encrypting...");
+      setProgress("Preparing upload...");
       setError("");
 
       try {
-        // Generate encryption key client-side (key never leaves browser in plaintext)
-        const keyHex = generateKeyHex();
-
-        setProgress("Uploading to 0G Storage...");
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("encrypt", "true");
-        formData.append("encryptionKey", keyHex);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? "Upload failed");
-
-        setProgress("");
-        onUploaded({
-          rootHash: json.rootHash,
-          txHash: json.txHash,
-          encryptionKey: json.encryptionKey ?? keyHex,
-          fileName: json.fileName ?? file.name,
-          fileType: json.fileType ?? file.type,
-          fileData: json.fileData,
-          storage: json.storage,
-        });
+        if (hasWalletProvider()) {
+          setProgress("Connecting wallet...");
+          const result = await uploadFromBrowser(file, true, setProgress);
+          setProgress("");
+          onUploaded({
+            ...result,
+            fileName: file.name,
+            fileType: file.type,
+            storage: "0g",
+          });
+        } else {
+          // No wallet — fallback to server-side local storage
+          setProgress("Uploading (local fallback)...");
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("encrypt", "true");
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error ?? "Upload failed");
+          setProgress("");
+          onUploaded(json);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Upload failed");
       } finally {
