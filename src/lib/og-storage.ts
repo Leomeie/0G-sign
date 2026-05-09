@@ -7,15 +7,15 @@ import os from "os";
 
 const INDEXER_URL =
   process.env.OG_INDEXER_URL ||
-  "https://indexer-storage-turbo.0g.ai";
+  "https://indexer-storage-testnet-turbo.0g.ai";
 const RPC_URL =
   process.env.OG_RPC_URL ||
-  "https://evmrpc.0g.ai";
+  "https://evmrpc-testnet.0g.ai";
 
 // Singletons — reused across requests in the same serverless instance
 let indexer: Indexer | null = null;
 let provider: ethers.JsonRpcProvider | null = null;
-let signer: ethers.Wallet | null = null;
+let signer: ethers.Wallet | ethers.HDNodeWallet | null = null;
 
 function getIndexer(): Indexer {
   if (!indexer) indexer = new Indexer(INDEXER_URL);
@@ -27,11 +27,22 @@ function getProvider(): ethers.JsonRpcProvider {
   return provider;
 }
 
-function getSigner(): ethers.Wallet {
+function getSigner(): ethers.Wallet | ethers.HDNodeWallet {
   if (!signer) {
     const key = process.env.OG_PRIVATE_KEY;
-    if (!key) throw new Error("OG_PRIVATE_KEY not set in .env.local");
-    signer = new ethers.Wallet(key, getProvider());
+    if (key) {
+      signer = new ethers.Wallet(key, getProvider());
+    } else {
+      // Auto-generate a dedicated server wallet for uploads
+      const wallet = ethers.Wallet.createRandom();
+      signer = wallet.connect(getProvider());
+      console.log("=== 0G Upload Wallet (auto-generated) ===");
+      console.log("Address:", signer.address);
+      console.log("Private key:", wallet.privateKey);
+      console.log("Fund at: https://faucet.0g.ai");
+      console.log("Or set OG_PRIVATE_KEY env var for persistence");
+      console.log("==========================================");
+    }
   }
   return signer;
 }
@@ -58,7 +69,6 @@ export async function uploadTo0G(
     let returnKeyHex: string | null = null;
 
     if (clientKeyHex) {
-      // Client provided the encryption key — use it directly
       const clean = clientKeyHex.startsWith("0x")
         ? clientKeyHex.slice(2)
         : clientKeyHex;
@@ -67,7 +77,6 @@ export async function uploadTo0G(
       );
       returnKeyHex = clientKeyHex;
     } else if (encrypt) {
-      // Server generates the key
       encryptionKey = generateAes256Key();
       returnKeyHex = "0x" + Buffer.from(encryptionKey).toString("hex");
     }
@@ -129,5 +138,6 @@ export async function downloadFrom0G(
 }
 
 export function isOgConfigured(): boolean {
-  return !!process.env.OG_PRIVATE_KEY;
+  // Always return true — we auto-generate a wallet if OG_PRIVATE_KEY is not set
+  return true;
 }
