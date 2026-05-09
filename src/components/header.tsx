@@ -33,6 +33,7 @@ export default function Header() {
   const wrongChain = isConnected && !supportedChainIds.includes(chainId);
 
   const handleConnect = () => {
+    if (connectPending) return;
     connect(
       { connector: injected() },
       {
@@ -40,7 +41,12 @@ export default function Header() {
           toast("Wallet connected", "success");
         },
         onError(err) {
-          toast("Connection failed: " + (err.message || "Unknown error"), "error");
+          const msg = err.message || "";
+          if (msg.includes("already pending")) {
+            toast("Please check MetaMask — a connection request is already open", "info");
+          } else {
+            toast("Connection failed: " + msg, "error");
+          }
         },
       },
     );
