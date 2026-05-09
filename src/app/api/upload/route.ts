@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const encrypt = formData.get("encrypt") === "true";
+    const clientKey = (formData.get("encryptionKey") as string) || null;
 
     if (!file) {
       return NextResponse.json({ error: "No file" }, { status: 400 });
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       fs.writeFileSync(tmpPath, buffer);
 
       try {
-        const result = await uploadTo0G(tmpPath, encrypt);
+        const result = await uploadTo0G(tmpPath, encrypt, clientKey);
         return NextResponse.json({
           rootHash: result.rootHash,
           txHash: result.txHash,

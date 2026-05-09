@@ -44,7 +44,8 @@ export interface UploadResult {
 
 export async function uploadTo0G(
   filePath: string,
-  encrypt: boolean = true
+  encrypt: boolean = true,
+  clientKeyHex?: string | null
 ): Promise<UploadResult> {
   const s = getSigner();
   const idx = getIndexer();
@@ -53,7 +54,24 @@ export async function uploadTo0G(
   try {
     await zgFile.merkleTree();
 
-    const encryptionKey = encrypt ? generateAes256Key() : null;
+    let encryptionKey: Uint8Array | null = null;
+    let returnKeyHex: string | null = null;
+
+    if (clientKeyHex) {
+      // Client provided the encryption key — use it directly
+      const clean = clientKeyHex.startsWith("0x")
+        ? clientKeyHex.slice(2)
+        : clientKeyHex;
+      encryptionKey = new Uint8Array(
+        clean.match(/.{1,2}/g)!.map((b) => parseInt(b, 16))
+      );
+      returnKeyHex = clientKeyHex;
+    } else if (encrypt) {
+      // Server generates the key
+      encryptionKey = generateAes256Key();
+      returnKeyHex = "0x" + Buffer.from(encryptionKey).toString("hex");
+    }
+
     const uploadOpts = encryptionKey
       ? { encryption: { type: "aes256" as const, key: encryptionKey } }
       : undefined;
@@ -71,17 +89,13 @@ export async function uploadTo0G(
       return {
         rootHash: result.rootHash,
         txHash: result.txHash,
-        encryptionKey: encryptionKey
-          ? "0x" + Buffer.from(encryptionKey).toString("hex")
-          : null,
+        encryptionKey: returnKeyHex,
       };
     }
     return {
       rootHash: result.rootHashes[0],
       txHash: result.txHashes[0],
-      encryptionKey: encryptionKey
-        ? "0x" + Buffer.from(encryptionKey).toString("hex")
-        : null,
+      encryptionKey: returnKeyHex,
     };
   } finally {
     await zgFile.close();
