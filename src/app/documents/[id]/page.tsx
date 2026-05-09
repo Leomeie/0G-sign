@@ -5,26 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import dynamic from "next/dynamic";
 import { getDoc, saveDoc, deleteDoc } from "@/lib/store";
 import ShareButton from "@/components/share-button";
 import ConfirmDialog from "@/components/confirm-dialog";
 import { useToast } from "@/components/toast";
+import SignButton from "@/components/sign-button";
+import SignatureList from "@/components/signature-list";
 import { useI18n } from "@/lib/i18n";
 import type { DocRecord, SignatureProof } from "@/types";
-
-const SignButton = dynamic(() => import("@/components/sign-button"), {
-  ssr: false,
-  loading: () => (
-    <div className="btn-gradient w-full px-6 py-3 text-sm text-center opacity-50">
-      Loading...
-    </div>
-  ),
-});
-
-const SignatureList = dynamic(() => import("@/components/signature-list"), {
-  ssr: false,
-});
 
 function CopyableValue({
   label,

@@ -4,20 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { nanoid } from "nanoid";
-import dynamic from "next/dynamic";
 import SignerInput from "@/components/signer-input";
+import DocumentUpload from "@/components/document-upload";
 import { saveDoc } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import type { DocRecord, UploadResult } from "@/types";
-
-const DocumentUpload = dynamic(() => import("@/components/document-upload"), {
-  ssr: false,
-  loading: () => (
-    <div className="glass-card p-8 text-center text-sm text-zinc-500">
-      Loading uploader...
-    </div>
-  ),
-});
 
 export default function CreatePage() {
   const { address } = useAccount();
