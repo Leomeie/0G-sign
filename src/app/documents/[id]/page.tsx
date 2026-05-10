@@ -232,6 +232,7 @@ export default function DocumentDetailPage() {
         body: JSON.stringify({
           rootHash: d.rootHash,
           encryptionKey: key || undefined,
+          fileName: d.fileName,
         }),
       });
 

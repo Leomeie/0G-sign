@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const rootHash: string = body.rootHash;
     const encryptionKey: string | undefined = body.encryptionKey;
+    const fileName: string = body.fileName || "document";
 
     if (!rootHash || !ROOT_HASH_RE.test(rootHash)) {
       return NextResponse.json(
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(readable, {
       headers: {
         "Content-Type": mime,
-        "Content-Disposition": "attachment; filename=document",
+        "Content-Disposition": `attachment; filename="${fileName.replace(/"/g, '\\"')}"`,
         "Content-Length": String(fileStat.size),
         "Cache-Control": "private, no-store",
       },

@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { recoverTypedDataAddress, isAddress, isHex } from "viem";
 import { getTypedDataForVerify } from "@/lib/eip712";
-import { supportedChains } from "@/lib/wagmi";
+import { supportedChains, ogMainnet } from "@/lib/wagmi";
+import { useI18n } from "@/lib/i18n";
 
 export default function VerifyPage() {
+  const { t } = useI18n();
   const [rootHash, setRootHash] = useState("");
   const [signer, setSigner] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [signature, setSignature] = useState("");
-  const [verifyChainId, setVerifyChainId] = useState(16602);
+  const [verifyChainId, setVerifyChainId] = useState<number>(ogMainnet.id);
   const [result, setResult] = useState<{
     valid: boolean;
     recoveredAddr: string;
@@ -97,15 +99,15 @@ export default function VerifyPage() {
 
   return (
     <div className="mx-auto max-w-xl animate-fade-in-up">
-      <h1 className="text-2xl font-bold text-zinc-100">Verify Signature</h1>
+      <h1 className="text-2xl font-bold text-zinc-100">{t("verifyTitle")}</h1>
       <p className="mt-1 text-sm text-zinc-400">
-        Verify an EIP-712 document signature. No wallet needed.
+        {t("verifyDesc")}
       </p>
 
       <div className="mt-8 space-y-4">
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Network
+            {t("networkLabel")}
           </label>
           <select
             value={verifyChainId}
@@ -122,7 +124,7 @@ export default function VerifyPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Root Hash
+            {t("rootHashLabel")}
           </label>
           <input
             type="text"
@@ -140,7 +142,7 @@ export default function VerifyPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Claimed Signer Address
+            {t("signerLabel")}
           </label>
           <input
             type="text"
@@ -158,7 +160,7 @@ export default function VerifyPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Timestamp (Unix seconds)
+            {t("timestampLabel")}
           </label>
           <input
             type="text"
@@ -178,7 +180,7 @@ export default function VerifyPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Signature
+            {t("signatureLabel")}
           </label>
           <textarea
             value={signature}
@@ -208,10 +210,10 @@ export default function VerifyPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Verifying...
+              {t("verifying")}
             </span>
           ) : (
-            "Verify"
+            t("verifyBtn")
           )}
         </button>
 
@@ -224,8 +226,8 @@ export default function VerifyPage() {
             }`}
           >
             {result.valid
-              ? `Signature is valid. Recovered address: ${result.recoveredAddr}`
-              : `Signature is INVALID. Recovered address (${result.recoveredAddr}) does not match claimed signer.`}
+              ? `${t("resultValid")} ${t("recoveredAddr")}: ${result.recoveredAddr}`
+              : `${t("resultInvalid")} ${t("recoveredAddr")} (${result.recoveredAddr}) ${t("doesNotMatch")}`}
           </div>
         )}
 

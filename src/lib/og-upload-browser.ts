@@ -109,26 +109,3 @@ export async function uploadFromBrowser(
     eject();
   }
 }
-
-// Re-export for download usage
-export async function downloadFile(
-  rootHash: string,
-  rpcUrl: string,
-  encryptionKeyHex?: string,
-): Promise<Blob> {
-  const eject = installNodeProxy();
-  try {
-    const indexer = new Indexer(
-      getNetworkForChain(16602).indexerUrl,
-    );
-    const opts = encryptionKeyHex
-      ? { decryption: { symmetricKey: encryptionKeyHex } }
-      : undefined;
-    const [blob, err] = await indexer.downloadToBlob(rootHash, opts as any);
-    if (err) throw err;
-    if (!blob) throw new Error("Empty blob");
-    return blob;
-  } finally {
-    eject();
-  }
-}

@@ -26,7 +26,7 @@ export const ogTestnet = defineChain({
 
 // Default chain: read from env, fallback to mainnet
 const defaultChainId = Number(process.env.NEXT_PUBLIC_OG_CHAIN_ID) || 16661;
-export const ogChain = defaultChainId === 16601 ? ogTestnet : ogMainnet;
+export const ogChain = defaultChainId === 16602 ? ogTestnet : ogMainnet;
 
 // All supported chains
 export const supportedChains = [ogMainnet, ogTestnet] as const;
